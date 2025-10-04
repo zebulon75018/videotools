@@ -1,227 +1,232 @@
-# videotools
-some stuff on video to merge with another or with a image ... 
+# 🎬 Video Tools
 
-Fonctionnalités :
+This project contains tools for manipulating videos, specifically for merging videos together, or with images.
 
-✅ Fusion de 2 vidéos (principale + incrustation)
-✅ Alignement temporel : START (début) ou END (fin)
-✅ Positionnement : top-left, top-right, bottom-left, bottom-right, center, ou coordonnées personnalisées
-✅ Chroma key : rendre une couleur transparente (vert par défaut)
-✅ Redimensionnement de la vidéo d'incrustation
-✅ Tolérance ajustable pour le chroma key
+There're two program : one to blend two video , and one to blend an image to a video 
 
-Instructions de compilation :
-Prérequis
-bash# Sur Ubuntu/Debian
-sudo apt-get install cmake build-essential libopencv-dev
+## ✨ Features
 
-# Sur macOS (avec Homebrew)
-brew install cmake opencv
+*   ✅ **Merge 2 videos** (main + overlay)
+*   ✅ **Merge a video with an image** (with PNG alpha channel support)
+*   ✅ **Temporal Alignment** : `START` (beginning), `END` (end), `FRAME` (specific frame), `TIMESTAMP` (specific time in seconds)
+*   ✅ **Overlay Positioning** : `top-left`, `top-right`, `bottom-left`, `bottom-right`, `center`, or custom coordinates (`custom`)
+*   ✅ **Chroma Key** : make a specific color transparent (green by default)
+*   ✅ **Resizing** of the overlay video or image
+*   ✅ **Adjustable tolerance** for chroma key
+*   ✅ **Opacity Control** for image overlays (`mergeimagetovideo`)
+*   ✅ **Automatic audio integration** from the main video (via `ffmpeg`)
 
-# Sur Windows
-# Installer OpenCV et configurer les variables d'environnement
-Compilation
-bash# Créer un dossier build
-mkdir build
-cd build
+## 🛠️ Compilation Instructions
 
-# Configurer avec CMake
-cmake ..
+### Prerequisites
 
-# Compiler
-cmake --build .
+Make sure you have the following dependencies installed:
 
-# Ou avec make
-make
-Exemples d'utilisation :
-bash# Exemple basique - overlay en haut à gauche
-./video_merger -m video_principale.mp4 -o overlay.mp4 -out resultat.avi
+**On Ubuntu/Debian:**
 
-# Avec chroma key vert (fond vert transparent)
+```bash
+sudo apt-get install cmake build-essential libopencv-dev ffmpeg
+```
+
+**On macOS (with Homebrew):**
+
+```bash
+brew install cmake opencv ffmpeg
+```
+
+**On Windows:**
+
+1.  Install [OpenCV](https://opencv.org/releases/) and configure environment variables.
+2.  Download [ffmpeg](https://ffmpeg.org/download.html) and add it to your `PATH`.
+3.  Install [CMake](https://cmake.org/download/).
+4.  Install a C++ compiler (e.g., MinGW or Visual Studio).
+
+### Compilation
+
+1.  **Create a `build` folder and navigate into it:**
+
+    ```bash
+    mkdir build
+    cd build
+    ```
+
+2.  **Configure with CMake:**
+
+    ```bash
+    cmake ..
+    ```
+
+3.  **Compile:**
+
+    ```bash
+    cmake --build .
+    # Or using make if you have it
+    # make
+    ```
+
+    After compilation, you will find two executables in the `build/` folder: `video_merger` and `mergeimagetovideo`.
+
+## 🚀 Usage Examples
+
+### 1. `video_merger` (Video + Video / Image Merging)
+
+This tool is designed to merge one video onto another video, or an image onto a video.
+
+```bash
+# Basic example - top-left video overlay
+./video_merger -m main_video.mp4 -o overlay.mp4 -out result.avi
+
+# With green chroma key (transparent green background)
 ./video_merger -m main.mp4 -o green_screen.mp4 -out result.avi -c 0,255,0
 
-# Position en bas à droite, alignement à la fin
+# Bottom-right position, end alignment
 ./video_merger -m main.mp4 -o overlay.mp4 -out result.avi \
   -p bottomright -a end
 
-# Position personnalisée avec coordonnées
+# Custom position with coordinates
 ./video_merger -m main.mp4 -o overlay.mp4 -out result.avi \
   -p custom -x 100 -y 50
 
-# Avec redimensionnement (50% de la taille)
+# With resizing (50% of the original size)
 ./video_merger -m main.mp4 -o overlay.mp4 -out result.avi \
   -s 0.5 -p topright
 
-# Chroma key bleu avec tolérance élevée
+# Blue chroma key with high tolerance
 ./video_merger -m main.mp4 -o blue_screen.mp4 -out result.avi \
   -c 0,0,255 -t 60
-Structure du projet :
-video-merger/
-├── CMakeLists.txt
-├── main.cpp
-└── build/
-    └── video_merger (exécutable après compilation)
-Le programme affiche la progression en temps réel et sauvegarde le résultat en format AVI (codec MJPEG). Vous pouvez modifier le codec dans le code si nécessaire !RéessayerClaude n'a pas encore la capacité d'exécuter le code qu'il génère.CEst ce que tu peut ajouter aussi comme parametre ou va etre au niveau temporel ,  incrusté la video secondaire , cela peut etre a debut , ou alors la duree de la video main - la duree de la video secondaire , ou alors grace a un nombre de frame ou a un time stampModifierVideo Merger avec Chroma KeyCode ∙ Version 2 enum class Position { TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT, CENTER, CUSTOM };
-enum class TimeAlign { START, END, FRAME, TIMESTAMP };
 
-struct Config {
-    string mainVideo;
-    string overlayVideo;
-    string outputVideo;
-    Position positiParfait ! J'ai ajouté les nouveaux paramètres d'alignement temporel. Voici les nouvelles possibilités :
-Nouveaux paramètres temporels :
-1. Par frame (-a frame -f <number>)
-Commence l'incrustation à une frame spécifique
-bash# Commencer l'overlay à la frame 150
+# New temporal parameters for overlay:
+
+# 1. By frame (-a frame -f <number>)
+# Starts the overlay at a specific frame
 ./video_merger -m main.mp4 -o overlay.mp4 -a frame -f 150 -out result.avi
-2. Par timestamp (-a timestamp -ts <seconds>)
-Commence l'incrustation à un moment précis en secondes
-bash# Commencer l'overlay à 5.5 secondes
+
+# 2. By timestamp (-a timestamp -ts <seconds>)
+# Starts the overlay at a precise time in seconds
 ./video_merger -m main.mp4 -o overlay.mp4 -a timestamp -ts 5.5 -out result.avi
 
-# Commencer à 1 minute 30
+# Start at 1 minute 30 seconds
 ./video_merger -m main.mp4 -o overlay.mp4 -ts 90 -out result.avi
-3. Au début (-a start - par défaut)
-L'overlay commence dès le début
-bash./video_merger -m main.mp4 -o overlay.mp4 -a start -out result.avi
-4. À la fin (-a end)
-L'overlay se termine en même temps que la vidéo principale
-bash./video_merger -m main.mp4 -o overlay.mp4 -a end -out result.avi
-Exemples complets :
-bash# Overlay avec fond vert, commence à 10 secondes, en bas à droite
+
+# 3. At the beginning (-a start - default)
+# The overlay starts from the beginning
+./video_merger -m main.mp4 -o overlay.mp4 -a start -out result.avi
+
+# 4. At the end (-a end)
+# The overlay ends at the same time as the main video
+./video_merger -m main.mp4 -o overlay.mp4 -a end -out result.avi
+
+# Complete examples:
+
+# Overlay with green background, starts at 10 seconds, bottom-right
 ./video_merger -m main.mp4 -o green_screen.mp4 \
   -c 0,255,0 -ts 10 -p bottomright -out result.avi
 
-# Overlay à 50% de taille, commence à la frame 200, position personnalisée
+# Overlay at 50% size, starts at frame 200, custom position
 ./video_merger -m main.mp4 -o overlay.mp4 \
   -s 0.5 -f 200 -p custom -x 100 -y 50 -out result.avi
 
-# Overlay centré qui se termine avec la vidéo principale
+# Centered overlay that ends with the main video
 ./video_merger -m main.mp4 -o overlay.mp4 \
   -a end -p center -out result.avi
 
-# Combine tout : chroma key + timestamp + position
+# Combine everything: chroma key + timestamp + position
 ./video_merger -m main.mp4 -o overlay.mp4 \
   -c 0,255,0 -t 50 -ts 15.5 -p topright -s 0.75 -out result.avi
-Le programme affiche maintenant l'alignement choisi et la frame de début calculée pour plus de clarté ! 🎬RéessayerClaude n'a pas encore la capacité d'exécuter le code qu'il génère.CEst ce qu'il est possible d'avoir le son de la premiere video qui sera dans la video finale ?ModifierVideo Merger avec Chroma KeyCode ∙ Version 6     cout << "\nTraitement vidéo terminé! Vidéo sauvegardée: " << cfg.outputVideo << endl;
-    
-    mainCap.release();
-    overlayCap.release();
-    writer.release();
-    
-    // Extraire et réintégrer l'audio avec ffmpeg
-    cout << "\nIntégration deParfait ! J'ai ajouté l'intégration automatique de l'audio de la vidéo principale. Le programme utilise maintenant ffmpeg pour réintégrer l'audio après le traitement vidéo.
-Comment ça fonctionne :
 
-OpenCV traite la vidéo (fusion des images)
-ffmpeg ajoute l'audio automatiquement depuis la vidéo principale
+# Audio from the main video is automatically included!
+# If ffmpeg is installed: Audio is integrated automatically
+# If ffmpeg is not installed: The program will display a command to run manually
+```
 
-Prérequis supplémentaire :
-bash# Sur Ubuntu/Debian
-sudo apt-get install ffmpeg
+### 2. `mergeimagetovideo` (Video + Image Merging only)
 
-# Sur macOS
-brew install ffmpeg
+This application is specifically optimized for merging an image (with or without PNG transparency) onto a video, with precise opacity and duration controls.
 
-# Sur Windows
-# Télécharger ffmpeg depuis https://ffmpeg.org/ et l'ajouter au PATH
-Compilation (mise à jour) :
-bash# Dépendances complètes
-sudo apt-get install cmake build-essential libopencv-dev ffmpeg
+```bash
+# Logo / Watermark
 
-# Compilation (identique)
-mkdir build && cd build
-cmake ..
-make
-Utilisation (inchangée) :
-bash# L'audio est maintenant automatiquement inclus !
-./video_merger -m main.mp4 -o overlay.mp4 -out result.avi
-
-# Avec tous les paramètres
-./video_merger -m main.mp4 -o overlay.mp4 \
-  -c 0,255,0 -ts 10 -p bottomright -out result.avi
-Que se passe-t-il :
-
-✅ Si ffmpeg est installé : Audio intégré automatiquement
-⚠️ Si ffmpeg n'est pas installé : Le programme affiche une commande à exécuter manuellement
-
-Le programme conserve la vidéo temporaire et affiche les instructions si ffmpeg n'est pas disponible, vous permettant d'intégrer l'audio plus tard ! 🔊RéessayerClaude n'a pas encore la capacité d'exécuter le code qu'il génère.
-
-
-Parfait ! J'ai créé une application dédiée mergeimagetovideo spécialement optimisée pour fusionner une image sur une vidéo. 🎨
-Nouvelles fonctionnalités spécifiques :
-1. Support complet du canal alpha PNG
-bash# PNG avec transparence native
+# PNG with native transparency
 ./mergeimagetovideo -v video.mp4 -i logo_transparent.png -p topright
 
-# Ignorer le canal alpha si nécessaire
+# Ignore alpha channel if needed
 ./mergeimagetovideo -v video.mp4 -i image.png --no-alpha
-2. Contrôle de l'opacité (-op, --opacity)
-bash# Watermark semi-transparent (50%)
+
+# Semi-transparent watermark (50%)
 ./mergeimagetovideo -v video.mp4 -i watermark.png -op 0.5 -p center
 
-# Logo très discret (20%)
+# Very subtle logo (20%)
 ./mergeimagetovideo -v video.mp4 -i logo.png -op 0.2 -p bottomright
-3. Interface simplifiée et intuitive
-Les paramètres sont optimisés pour le cas d'usage image/vidéo
-Structure du projet mise à jour :
-video-merger/
-├── CMakeLists.txt
-├── main.cpp                    # video_merger (vidéo + vidéo/image)
-├── mergeimagetovideo.cpp       # mergeimagetovideo (vidéo + image uniquement)
-└── build/
-    ├── video_merger
-    └── mergeimagetovideo
-Compilation :
-bashmkdir build && cd build
-cmake ..
-make
 
-# Résultat : 2 exécutables
-# - video_merger : fusion vidéo/vidéo ou vidéo/image
-# - mergeimagetovideo : fusion vidéo/image uniquement (optimisé)
-Exemples d'utilisation de mergeimagetovideo :
-Logo / Watermark
-bash# Logo en haut à droite, 30% de la taille
+# Top-right logo, 30% size
 ./mergeimagetovideo -v video.mp4 -i logo.png -p topright -s 0.3
 
-# Watermark centré avec transparence 30%
+# Centered watermark with 30% transparency
 ./mergeimagetovideo -v video.mp4 -i watermark.png -p center -op 0.3
 
-# Logo en bas à gauche toute la vidéo
+# Bottom-left logo for the entire video
 ./mergeimagetovideo -v video.mp4 -i brand.png -p bottomleft -s 0.2
-Image temporaire
-bash# Image de 5s à 15s (300 frames à 30fps)
+
+
+# Temporary Image
+
+# Image from 5s to 15s (300 frames at 30fps)
 ./mergeimagetovideo -v video.mp4 -i overlay.jpg -ts 5 -d 300 -p center
 
-# Image à la frame 100, durée 200 frames
+# Image at frame 100, duration 200 frames
 ./mergeimagetovideo -v video.mp4 -i image.png -f 100 -d 200
 
-# Image qui apparaît à la fin (dernières 5 secondes)
+# Image that appears at the end (last 5 seconds)
 ./mergeimagetovideo -v video.mp4 -i end_screen.jpg -a end -d 150
-Chroma key
-bash# Image avec fond vert transparent
+
+
+# Chroma Key
+
+# Image with transparent green background
 ./mergeimagetovideo -v video.mp4 -i image_green.jpg \
   -c 0,255,0 -t 40 -p center
 
-# Image avec fond bleu, semi-transparente
+# Image with blue background, semi-transparent
 ./mergeimagetovideo -v video.mp4 -i blue_bg.png \
   -c 0,0,255 -op 0.7 -p topright
-Combinaisons avancées
-bash# Logo PNG transparent, position personnalisée, opacité 80%
+
+
+# Advanced Combinations
+
+# Transparent PNG logo, custom position, 80% opacity
 ./mergeimagetovideo -v video.mp4 -i logo.png \
   -p custom -x 50 -y 50 -op 0.8 -s 0.5
 
-# Watermark avec chroma key + opacité
+# Watermark with chroma key + opacity
 ./mergeimagetovideo -v video.mp4 -i watermark.jpg \
   -c 255,255,255 -t 30 -op 0.4 -p bottomright
 
-# Image qui apparaît progressivement (simulé par opacité)
+# Image that appears gradually (simulated by opacity)
 ./mergeimagetovideo -v video.mp4 -i overlay.png \
   -ts 10 -d 90 -p center -op 0.6
-Avantages de mergeimagetovideo vs video_merger :
-Fonctionnalitémergeimagetovideovideo_mergerSupport PNG alpha✅ Optimisé✅ BasiqueContrôle opacité✅ 0.0 à 1.0❌Performance⚡ Plus rapide (pas de décodage vidéo overlay)StandardInterface🎯 Dédiée images🔀 GénériqueBlending alpha✅ Avancé✅ Simple
-Aide intégrée :
-bash./mergeimagetovideo --help
-# Affiche une aide complète avec exemples
-Les deux applications sont maintenant disponibles avec des cas d'usage complémentaires ! 🚀RéessayerClaude n'a pas encore la capacité d'exécuter le code qu'il génère.
+```
+
+### Integrated Help
+
+You can always get help on command-line options:
+
+```bash
+./video_merger --help
+./mergeimagetovideo --help
+```
+
+## 📂 Project Structure
+
+```
+video-merger/
+├── CMakeLists.txt
+├── main.cpp                    # Source code for 'video_merger' (video + video/image)
+├── mergeimagetovideo.cpp       # Source code for 'mergeimagetovideo' (video + image only)
+└── build/
+    ├── video_merger            # Executable after compilation
+    └── mergeimagetovideo       # Executable after compilation
+```
+
+The program displays real-time progress and saves the result in AVI format (MJPEG codec). You can change the codec in the code if needed!
+
+---
