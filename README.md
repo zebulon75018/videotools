@@ -66,6 +66,79 @@ brew install cmake opencv ffmpeg
 
     After compilation, you will find two executables in the `build/` folder: `video_merger` and `mergeimagetovideo`.
 
+
+### Integrated Help
+
+You can always get help on command-line options:
+
+```bash
+./video_merger --help
+
+Usage: ./video_merger [options]
+Options:
+  -m, --main <file>          Video principale (requise)
+  -o, --overlay <file>       Video d'incrustation (requise)
+  -out, --output <file>      Video de sortie (défaut: output.avi)
+  -p, --position <pos>       Position: topleft|topright|bottomleft|bottomright|center|custom
+  -x <pixels>                Position X personnalisée (avec --position custom)
+  -y <pixels>                Position Y personnalisée (avec --position custom)
+  -a, --align <align>        Alignement temporel: start|end|frame|timestamp (défaut: start)
+  -f, --frame <number>       Frame de début pour l'overlay (avec --align frame)
+  -ts, --timestamp <sec>     Timestamp de début en secondes (avec --align timestamp)
+  -c, --chroma <r,g,b>       Activer chroma key avec couleur RGB (ex: 0,255,0 pour vert)
+  -t, --tolerance <val>      Tolérance du chroma key (défaut: 40)
+  -s, --scale <float>        Échelle de la vidéo overlay (défaut: 1.0)
+  -h, --help                 Afficher cette aide
+
+Exemples d'alignement temporel:
+  start       : Overlay commence au début de la vidéo principale
+  end         : Overlay se termine avec la fin de la vidéo principale
+  frame       : Overlay commence à une frame spécifique (-f)
+  timestamp   : Overlay commence à un timestamp spécifique (-ts)
+
+```
+
+
+```bash
+./mergeimagetovideo --help
+
+Usage: ./mergeimagetovideo [options]
+
+Description:
+  Fusionne une image sur une vidéo avec support de transparence et positionnement.
+
+Options requises:
+  -v, --video <file>         Vidéo principale (requise)
+  -i, --image <file>         Image à incruster (requise)
+
+Options de sortie:
+  -out, --output <file>      Vidéo de sortie (défaut: output.avi)
+
+Options de positionnement:
+  -p, --position <pos>       Position: topleft|topright|bottomleft|bottomright|center|custom
+                             (défaut: topleft)
+  -x <pixels>                Position X personnalisée (avec --position custom)
+  -y <pixels>                Position Y personnalisée (avec --position custom)
+
+Options temporelles:
+  -a, --align <align>        Alignement: start|end|frame|timestamp (défaut: start)
+  -f, --frame <number>       Frame de début (avec --align frame)
+  -ts, --timestamp <sec>     Timestamp de début en secondes (avec --align timestamp)
+  -d, --duration <frames>    Durée en frames (-1 = reste de la vidéo)
+
+Options visuelles:
+  -s, --scale <float>        Échelle de l'image (défaut: 1.0)
+  -op, --opacity <float>     Opacité de l'image: 0.0 (transparent) à 1.0 (opaque)
+  -c, --chroma <r,g,b>       Activer chroma key avec couleur RGB (ex: 0,255,0)
+  -t, --tolerance <val>      Tolérance du chroma key (défaut: 40)
+  --no-alpha                 Ignorer le canal alpha du PNG
+
+Autres:
+  -h, --help                 Afficher cette aide
+
+```
+
+
 ## 🚀 Usage Examples
 
 ### 1. `video_merger` (Video + Video / Image Merging)
@@ -206,14 +279,6 @@ This application is specifically optimized for merging an image (with or without
   -ts 10 -d 90 -p center -op 0.6
 ```
 
-### Integrated Help
-
-You can always get help on command-line options:
-
-```bash
-./video_merger --help
-./mergeimagetovideo --help
-```
 
 ## 📂 Project Structure
 
