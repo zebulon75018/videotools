@@ -2,12 +2,17 @@
 
 This project contains tools for manipulating videos, specifically for merging videos together, or with images.
 
-There're three program : one to blend two video , and one to blend an image to a video , and draw subtitle with worpd spoke.
+There're three program : one to blend two video , and one to blend an image to a video , and draw subtitle with word speaking.
 ![merge](https://github.com/zebulon75018/videotools/blob/main/img/bigbunny.png?raw=true) 
 + 
 ![merge](https://github.com/zebulon75018/videotools/blob/main/img/giphy2.gif?raw=true)  
  = 
 ![merge](https://github.com/zebulon75018/videotools/blob/main/img/mergeimg2video.png?raw=true)
+
+
+Subtitle with soeanking  word
+![](https://github.com/zebulon75018/videotools/blob/main/img/subtitle2.png?raw=true)
+
 
 ## ✨ Features
 
