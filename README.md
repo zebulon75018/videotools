@@ -209,7 +209,8 @@ Notes:
   - max-width-pct: largeur max du bloc sous-titres après marges/safe.
 ```
 <img width="777" height="234" alt="image" src="https://github.com/user-attachments/assets/b6a0d1a9-7d15-4bb9-8344-66506803b68e" />
-<img width="777" height="234" alt="image" src="https://github.com/user-attachments/assets/6def9e8b-81ae-49d7-8509-75e436aff875" />
+
+![](https://github.com/zebulon75018/videotools/blob/main/img/subtitle2.png?raw=true)
 
 
 
