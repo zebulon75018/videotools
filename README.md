@@ -26,6 +26,8 @@ Subtitle with soeanking  word
 *   ✅ **Adjustable tolerance** for chroma key
 *   ✅ **Opacity Control** for image overlays (`mergeimagetovideo`)
 *   ✅ **Automatic audio integration** from the main video (via `ffmpeg`)
+*   ✅ **Draw subtitle** from the main video with a srt and a .json specific file.
+  
 
 ## 🛠️ Compilation Instructions
 
