@@ -48,6 +48,13 @@ brew install cmake opencv ffmpeg
 
 ### Compilation
 
+Get the 2 include files: 
+
+https://github.com/saurabhshri/simple-yet-powerful-srt-subtitle-parser-cpp ( srtparser.h )
+
+https://github.com/nlohmann/json (single header: json.hpp)
+
+
 1.  **Create a `build` folder and navigate into it:**
 
     ```bash
@@ -142,6 +149,66 @@ Autres:
   -h, --help                 Afficher cette aide
 
 ```
+
+```bash
+./mergeimagetovideo --help
+
+Usage: ./mergeimagetovideo [options]
+
+Description:
+  Fusionne une image sur une vidéo avec support de transparence et positionnement.
+
+Options requises:
+  -v, --video <file>         Vidéo principale (requise)
+  -i, --image <file>         Image à incruster (requise)
+
+Options de sortie:
+  -out, --output <file>      Vidéo de sortie (défaut: output.avi)
+
+Options de positionnement:
+  -p, --position <pos>       Position: topleft|topright|bottomleft|bottomright|center|custom
+                             (défaut: topleft)
+  -x <pixels>                Position X personnalisée (avec --position custom)
+  -y <pixels>                Position Y personnalisée (avec --position custom)
+
+Options temporelles:
+  -a, --align <align>        Alignement: start|end|frame|timestamp (défaut: start)
+  -f, --frame <number>       Frame de début (avec --align frame)
+  -ts, --timestamp <sec>     Timestamp de début en secondes (avec --align timestamp)
+  -d, --duration <frames>    Durée en frames (-1 = reste de la vidéo)
+
+Options visuelles:
+  -s, --scale <float>        Échelle de l'image (défaut: 1.0)
+  -op, --opacity <float>     Opacité de l'image: 0.0 (transparent) à 1.0 (opaque)
+  -c, --chroma <r,g,b>       Activer chroma key avec couleur RGB (ex: 0,255,0)
+  -t, --tolerance <val>      Tolérance du chroma key (défaut: 40)
+  --no-alpha                 Ignorer le canal alpha du PNG
+
+Autres:
+  -h, --help                 Afficher cette aide
+
+```
+
+```bash
+sage:
+  ./videoSubRenderer <input_video> <output_video> <subtitles.(srt|json)>
+     [--font-face N] [--font-scale F] [--thickness T]
+     [--color B,G,R] [--position top|bottom] [--center 0|1]
+     [--margin-x PX] [--margin-y PX] [--line-gap PX]
+     [--keep-html 0|1]
+     [--outline 0|1] [--outline-thickness T] [--outline-color B,G,R]
+     [--bg 0|1] [--bg-color B,G,R] [--bg-alpha A] [--bg-pad-x PX] [--bg-pad-y PX]
+     [--safe-pct P]
+     [--max-width-pct P]
+     [--karaoke 0|1] [--hl-scale F] [--hl-thickness T] [--hl-color B,G,R]
+
+Notes:
+  - .srt via srtparser.h ; .json = tableau d'objets {start,end,text,words:[{word,start,end},...]}
+  - color/outline-color/bg-color en B,G,R (OpenCV). bg-alpha dans [0..1].
+  - safe-pct applique des marges minimales en % (title safe).
+  - max-width-pct: largeur max du bloc sous-titres après marges/safe.
+```
+
 
 
 ## 🚀 Usage Examples
@@ -283,6 +350,32 @@ This application is specifically optimized for merging an image (with or without
 ./mergeimagetovideo -v video.mp4 -i overlay.png \
   -ts 10 -d 90 -p center -op 0.6
 ```
+
+### µ3. `videoSubRenderer` (Video + subtitle (srt) or json )
+
+Fond semi-opaque + outline + safe area 10% :
+```
+./video_sub in.mp4 out.mp4 subs.srt \
+  --bg 1 --bg-color 0,0,0 --bg-alpha 0.45 --bg-pad-x 28 --bg-pad-y 16 \
+  --outline 1 --outline-thickness 4 --outline-color 0,0,0 \
+  --safe-pct 10 \
+  --font-scale 1.1 --thickness 2 --color 255,255,255 --position bottom --center 1
+```
+
+Fond seul (barre en haut) :
+
+```
+./video_sub in.mp4 out.mp4 subs.srt \
+  --position top --center 0 --margin-x 60 --bg 1 --bg-alpha 0.35 --bg-color 0,0,0
+```
+
+```
+./video_sub in.mp4 out.mp4 subs.srt \
+  --bg 1 --bg-color 0,0,0 --bg-alpha 0.4 --bg-pad-x 28 --bg-pad-y 16 \
+  --outline 1 --outline-thickness 4 --outline-color 0,0,0 \
+  --safe-pct 10 --max-width-pct 85
+```
+
 
 
 ## 📂 Project Structure
