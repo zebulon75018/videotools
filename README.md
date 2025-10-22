@@ -54,6 +54,17 @@ brew install cmake opencv ffmpeg
 3.  Install [CMake](https://cmake.org/download/).
 4.  Install a C++ compiler (e.g., MinGW or Visual Studio).
 
+### How to hav specific json file for word speaking hightlight
+
+```
+git clone https://github.com/SYSTRAN/faster-whisper
+or pip faster-whisper
+```
+```
+python  makejsonsubtitle.py exampleaudio.mp3 sample.json
+```
+
+
 ### Compilation
 
 Get the 2 include files: 
