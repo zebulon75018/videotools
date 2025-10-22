@@ -14,15 +14,19 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 # Ajouter les exécutables
 add_executable(video_merger main.cpp)
 add_executable(mergeimagetovideo mergeimagetovideo.cpp)
+add_executable(videoSubRenderer videoSubRenderer.cpp)
+
 
 # Lier avec OpenCV
 target_link_libraries(video_merger ${OpenCV_LIBS})
 target_link_libraries(mergeimagetovideo ${OpenCV_LIBS})
+target_link_libraries(videoSubRenderer ${OpenCV_LIBS})
 
 # Options de compilation
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(video_merger PRIVATE -Wall -Wextra -O3)
     target_compile_options(mergeimagetovideo PRIVATE -Wall -Wextra -O3)
+    target_compile_options(videoSubRenderer PRIVATE -Wall -Wextra -O3)
 endif()
 
 # Afficher les informations
