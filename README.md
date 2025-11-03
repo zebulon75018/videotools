@@ -14,6 +14,10 @@ Subtitle with soeanking  word
 ![](https://github.com/zebulon75018/videotools/blob/main/img/subtitle.gif?raw=true?raw=true)
 
 
+The crop directory contains a qt/gui to crop a video.
+
+![preview](https://github.com/zebulon75018/videotools/blob/main/crop/preview.gif?raw=true)
+
 
 ## ✨ Features
 
