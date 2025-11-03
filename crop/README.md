@@ -2,7 +2,7 @@
 
 **QtVideoCut** is a lightweight C++/Qt application that lets you open a video, preview it, and select a segment using a **double range slider**.  
 You can then **save or export** the selected part of the video:
-- via **OpenCV** (fast re-encoding with progress bar)
+- via **OpenCV** (fast re-encoding with progress bar but without sound)
 - or via **FFmpeg** (lossless cut, no re-encoding)
 
 ---
@@ -15,14 +15,14 @@ You can then **save or export** the selected part of the video:
 - 🔹 Shows **In / Out timecodes** in the bottom status bar
 - 🔹 📋 **Copy timecodes** to clipboard with one click
 - 🔹 Save segment using:
-  - 🧩 **OpenCV** – *File → Save segment...* (with progress dialog)
+  - 🧩 **OpenCV** – *File → Save segment...* (with progress dialog but without sound)
   - ⚡ **FFmpeg** – *File → Export segment (ffmpeg)...* (direct copy, no re-encode)
 - 🔹 Optionally open a video from the command line
 
 ---
 
 ## 🧱 Project Structure
-
+```
 qt-video-cut/
 ├── CMakeLists.txt
 ├── main.cpp
@@ -30,7 +30,7 @@ qt-video-cut/
 ├── mainwindow.cpp
 ├── range_slider.h
 └── README.md
-
+```
 yaml
 Copier le code
 
@@ -43,7 +43,6 @@ Copier le code
 - **Qt 6** (or Qt 5)
 - **OpenCV 4.x**
 - **FFmpeg** (must be in your `PATH` for export)
-- **CMake ≥ 3.16**
 
 ---
 
@@ -52,25 +51,23 @@ Copier le code
 ```bash
 git clone https://github.com/<your-username>/QtVideoCut.git
 cd QtVideoCut
-mkdir build && cd build
-cmake ..
+qmake
 make -j
-On Windows
-Open the project folder in Qt Creator or Visual Studio (CMake)
+```
 
-Select your Qt kit (MSVC or MinGW)
+## Build and run 🚀
 
-Build and run 🚀
-
-▶️ Usage
+# ▶️ Usage
 Open a video
 Go to File → Open Video...
 
 Or from command line:
-
+```
 bash
 Copier le code
 ./QtVideoCut my_video.mp4
+```
+
 Select a segment
 Use the RangeSlider:
 
@@ -79,8 +76,9 @@ Left handle → start of segment (In)
 Right handle → end of segment (Out)
 
 The current timecodes are shown in the status bar:
+```
 In: 00:00:02.040 | Out: 00:00:05.120
-
+```
 Copy timecodes
 Click the 📋 Copy timecodes button in the bottom-right corner.
 The text In: ... | Out: ... is placed in your clipboard.
@@ -100,12 +98,14 @@ Command executed:
 
 bash
 Copier le code
+```
 ffmpeg -y -ss <start> -i "<input>" -t <duration> -c copy "<output>"
-🖼️ Example UI
+```
+## 🖼️ Example UI
 
 (The RangeSlider lets you easily select the start and end of the clip to export.)
 
-🧠 Technical Details
+## 🧠 Technical Details
 Language: C++17
 
 Framework: Qt Widgets
@@ -124,7 +124,7 @@ Includes a 📋 copy button for quick clipboard access
 
 Cross-platform: Windows / Linux / macOS
 
-🧰 Possible Improvements
+## 🧰 Possible Improvements
  Add real-time playback (Play/Pause)
 
  Preserve audio when exporting with OpenCV
@@ -139,9 +139,9 @@ Cross-platform: Windows / Linux / macOS
 This project is released under the MIT License.
 You are free to use, modify, and distribute it.
 
-👨‍💻 Author
-Your Name / Alias
-🔗 https://github.com/<your-username>
+## 👨‍💻 Author
+
+🔗 https://github.com/zebulon75018
 
 💛 If you find this project useful, consider leaving a ⭐ on GitHub!
 
