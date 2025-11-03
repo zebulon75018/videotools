@@ -1,5 +1,9 @@
  # 🎬 QtVideoCut – Simple Video Segment Editor (Qt + OpenCV + FFmpeg)
 
+
+![preview](https://github.com/zebulon75018/videotools/blob/main/crop/preview.gif?raw=true)
+
+
 **QtVideoCut** is a lightweight C++/Qt application that lets you open a video, preview it, and select a segment using a **double range slider**.  
 You can then **save or export** the selected part of the video:
 - via **OpenCV** (fast re-encoding with progress bar but without sound)
