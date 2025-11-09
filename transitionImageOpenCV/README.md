@@ -1,3 +1,41 @@
+# Make a video from two images with transition in CLI
+
+These code is from vibe coding , hum the quality is not the best , but it's works.
+
+```
+Usage: ./transition_cli <image1> <image2> <config.json> <output_video> [fps] 
+ -h or --help for full help 
+Example JSON: { "duration": 5, "type": "slideright", "easing": "ease-in-out" }
+```
+
+## Transitions : 
+```
+	slider
+	slideright
+	fade
+	appearright
+	wipe
+	barndoor
+	radial
+	pie
+	pieadvanced
+	piesweep
+	zoom
+	checkerboard
+	damier
+	movingbars
+	bars
+	interleave
+	randomcircles
+	randomsquares
+	blinds
+	blur
+	checkerboardanimated
+	checkerboard_anim
+	checkerboard-animated
+```
+
+
 # Types de transitions et leurs sous-options
 
 La fonction `createTransitionFromJson` prend en charge plusieurs types de transitions, chacune avec des paramètres spécifiques définis dans le JSON. Les sous-options incluent des paramètres communs (comme `duration`, `fps`, `easing`, `mask_blur`) et des paramètres spécifiques à chaque type de transition.
