@@ -215,7 +215,7 @@ Autres:
 ```bash
 sage:
   ./videoSubRenderer <input_video> <output_video> <subtitles.(srt|json)>
-     [--font-face N] [--font-scale F] [--thickness T]
+     [--font-size N] [ --font (path ttf) ] [--thickness T]
      [--color B,G,R] [--position top|bottom] [--center 0|1]
      [--margin-x PX] [--margin-y PX] [--line-gap PX]
      [--keep-html 0|1]
@@ -378,15 +378,14 @@ This application is specifically optimized for merging an image (with or without
   -ts 10 -d 90 -p center -op 0.6
 ```
 
-### µ3. `videoSubRenderer` (Video + subtitle (srt) or json )
+### 3. `videoSubRenderer` (Video + subtitle (srt) or json )
 
 Fond semi-opaque + outline + safe area 10% :
 ```
 ./video_sub in.mp4 out.mp4 subs.srt \
   --bg 1 --bg-color 0,0,0 --bg-alpha 0.45 --bg-pad-x 28 --bg-pad-y 16 \
   --outline 1 --outline-thickness 4 --outline-color 0,0,0 \
-  --safe-pct 10 \
-  --font-scale 1.1 --thickness 2 --color 255,255,255 --position bottom --center 1
+  --safe-pct 10 --thickness 2 --color 255,255,255 --position bottom --center 1
 ```
 
 Fond seul (barre en haut) :
