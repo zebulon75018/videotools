@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>
+#include <opencv2/freetype.hpp> // Ajout pour FreeType
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,16 +18,22 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+
+cv::Ptr<cv::freetype::FreeType2> ft2;
+
 // ========================= Options / CLI =========================
 struct Options {
     std::string inVideo;
     std::string outVideo;
     std::string subPath; // .srt ou .json (auto-détection via extension)
+    std::string ttfPath; // Nouveau : chemin vers la police TTF
+
+    int fontSize = 24; // Taille en points pour TrueType
 
     // style texte "normal"
     int fontFace = cv::FONT_HERSHEY_SIMPLEX;
     double fontScale = 1.0;
-    int thickness = 2;
+    int thickness = -1;
     cv::Scalar color = cv::Scalar(255,255,255); // BGR
 
     // positionnement
@@ -58,8 +65,11 @@ struct Options {
     // Karaoké (.json uniquement)
     bool karaoke = true;
     double hlScale = 1.3;                 // taille mot actif
+    int hlFontSize = 32;                  // Taille en points pour mots actifs
     int hlThickness = 3;                  // épaisseur mot actif
-    cv::Scalar hlColor = cv::Scalar(0,255,255); // BGR
+    cv::Scalar hlColor = cv::Scalar(0,0,200); // Orange for the current word
+    cv::Scalar hlBoxColor = cv::Scalar(128,128,128); // BGR
+    bool hlBoxDraw = false;
 };
 
 static bool parseBGR(const std::string& s, cv::Scalar& out) {
@@ -79,7 +89,8 @@ static void printUsage(const char* prog) {
     std::cout <<
 "Usage:\n"
 "  " << prog << " <input_video> <output_video> <subtitles.(srt|json)>\n"
-"     [--font-face N] [--font-scale F] [--thickness T]\n"
+//"     [--font-face N] [--font-scale F] [--thickness T]\n"
+"     [--font-size N] [--font path.ttf ] [--thickness T]\n"
 "     [--color B,G,R] [--position top|bottom] [--center 0|1]\n"
 "     [--margin-x PX] [--margin-y PX] [--line-gap PX]\n"
 "     [--keep-html 0|1]\n"
@@ -87,7 +98,7 @@ static void printUsage(const char* prog) {
 "     [--bg 0|1] [--bg-color B,G,R] [--bg-alpha A] [--bg-pad-x PX] [--bg-pad-y PX]\n"
 "     [--safe-pct P]\n"
 "     [--max-width-pct P]\n"
-"     [--karaoke 0|1] [--hl-scale F] [--hl-thickness T] [--hl-color B,G,R]\n"
+"     [--karaoke 0|1] [--hl-scale F] [--hl-thickness T] [--hl-color B,G,R] [--hl-box-color]\n"
 "\nNotes:\n"
 "  - .srt via srtparser.h ; .json = tableau d'objets {start,end,text,words:[{word,start,end},...]}\n"
 "  - color/outline-color/bg-color en B,G,R (OpenCV). bg-alpha dans [0..1].\n"
@@ -103,6 +114,8 @@ static Options parseArgs(int argc, char** argv) {
     o.outVideo = argv[2];
     o.subPath = argv[3];
 
+    o.ttfPath = "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf";
+
     for (int i=4;i<argc;++i) {
         std::string a = argv[i];
         auto need = [&](bool cond, const std::string& name){ if(!cond){ std::cerr<<"Argument manquant après "<<name<<"\n"; std::exit(2);} };
@@ -110,9 +123,11 @@ static Options parseArgs(int argc, char** argv) {
         auto getI = [&](int& dst){ need(i+1<argc,a); dst = std::stoi(argv[++i]); };
         auto getS = [&](std::string& dst){ need(i+1<argc,a); dst = argv[++i]; };
 
+        if (a=="--font") getS(o.ttfPath);
         if (a=="--font-face") getI(o.fontFace);
         else if (a=="--font-scale") getD(o.fontScale);
         else if (a=="--thickness") getI(o.thickness);
+        else if (a== "--font-size") getI(o.fontSize);
         else if (a=="--color") { need(i+1<argc,a); if(!parseBGR(argv[++i], o.color)){ std::cerr<<"Couleur invalide\n"; std::exit(2);} }
         else if (a=="--position") { getS(o.position); std::transform(o.position.begin(),o.position.end(),o.position.begin(),::tolower); }
         else if (a=="--center") { int v; getI(v); o.center=(v!=0); }
@@ -136,6 +151,7 @@ static Options parseArgs(int argc, char** argv) {
 
         else if (a=="--karaoke") { int v; getI(v); o.karaoke=(v!=0); }
         else if (a=="--hl-scale") getD(o.hlScale);
+        else if (a=="--hl-box-color") { need(i+1<argc,a); if(!parseBGR(argv[++i], o.hlBoxColor)){ std::cerr<<"Couleur invalide\n"; std::exit(2);} else { o.hlBoxDraw = true;} }
         else if (a=="--hl-thickness") getI(o.hlThickness);
         else if (a=="--hl-color") { need(i+1<argc,a); if(!parseBGR(argv[++i], o.hlColor)){ std::cerr<<"Couleur invalide\n"; std::exit(2);} }
 
@@ -147,6 +163,17 @@ static Options parseArgs(int argc, char** argv) {
     o.hlScale = std::max(1.0, o.hlScale);
     if (o.hlThickness <= 0) o.hlThickness = o.thickness + 1;
     return o;
+}
+
+static void drawText(cv::Mat img, const std::string& text, cv::Point org,
+    int fontHeight, cv::Scalar color,
+    int thickness, int line_type=cv::LINE_AA, bool bottomLeftOrigin=true)
+{    
+    ft2->putText(img, text, org, fontHeight, color,
+        thickness, line_type,bottomLeftOrigin);
+    /*ft2->putText(img, text, org, fontHeight, color,
+        thickness, cv::LINE_AA,false);
+        */
 }
 
 // ========================= Helpers wrap SRT =========================
@@ -162,14 +189,14 @@ static std::vector<std::string> splitParagraphs(const std::string& text) {
     return paras;
 }
 
-static void hardWrapWord(const std::string& word, int maxW, int fontFace, double fontScale, int thickness,
+static void hardWrapWord(const std::string& word, int maxW, int fontSize, int thickness,
                          std::vector<std::string>& outLines)
 {
     if (word.empty()) return;
     std::string cur;
     for (char ch : word) {
         std::string test = cur + ch;
-        int bl=0; auto sz = cv::getTextSize(test, fontFace, fontScale, thickness, &bl);
+        int bl=0; auto sz = ft2->getTextSize(test, fontSize,  thickness, &bl);
         if (sz.width > maxW && !cur.empty()) { outLines.push_back(cur); cur.clear(); }
         cur.push_back(ch);
     }
@@ -177,7 +204,7 @@ static void hardWrapWord(const std::string& word, int maxW, int fontFace, double
 }
 
 static std::vector<std::string> wrapText(const std::string& para,
-                                         int maxW, int fontFace, double fontScale, int thickness)
+                                         int maxW, int fontSize, int thickness)
 {
     std::vector<std::string> lines;
     if (para.empty()) { lines.emplace_back(""); return lines; }
@@ -187,15 +214,15 @@ static std::vector<std::string> wrapText(const std::string& para,
     for (size_t i=0;i<words.size();++i) {
         const std::string& w = words[i];
         std::string candidate = cur.empty()? w : (cur + " " + w);
-        int bl=0; auto sz = cv::getTextSize(candidate, fontFace, fontScale, thickness, &bl);
+        int bl=0; auto sz = ft2->getTextSize(candidate, fontSize,thickness, &bl);
         if (sz.width <= maxW) {
             cur = candidate;
         } else {
             if (!cur.empty()) { lines.push_back(cur); cur.clear(); }
-            int blw=0; auto wsz = cv::getTextSize(w, fontFace, fontScale, thickness, &blw);
+            int blw=0; auto wsz = ft2->getTextSize(w, fontSize,  thickness, &blw);
             if (wsz.width > maxW) {
                 std::vector<std::string> chunks;
-                hardWrapWord(w, maxW, fontFace, fontScale, thickness, chunks);
+                hardWrapWord(w, maxW, fontSize,  thickness, chunks);
                 for (size_t k=0;k+1<chunks.size();++k) lines.push_back(chunks[k]);
                 if (!chunks.empty()) cur = chunks.back();
             } else {
@@ -239,7 +266,7 @@ static bool loadJsonSubs(const std::string& path, std::vector<JSeg>& out) {
 
 // wrap au niveau des tokens JSON (les tokens contiennent souvent l'espace de tête)
 static std::vector<std::vector<int>> wrapJsonWords(const std::vector<JWord>& words,
-                                                   int maxW, int fontFace, double fontScale, int thickness)
+                                                   int maxW, int fontSize,int thickness)
 {
     std::vector<std::vector<int>> lines;
     std::vector<int> curIdx;
@@ -248,7 +275,7 @@ static std::vector<std::vector<int>> wrapJsonWords(const std::vector<JWord>& wor
     for (int i=0;i<(int)words.size();++i) {
         const std::string& tok = words[i].token;
         std::string test = curText + tok;
-        auto sz = cv::getTextSize(test, fontFace, fontScale, thickness, &bl);
+        auto sz = ft2->getTextSize(test, fontSize,thickness, &bl);
         if (!curIdx.empty() && sz.width > maxW) {
             lines.push_back(curIdx);
             curIdx.clear();
@@ -262,9 +289,13 @@ static std::vector<std::vector<int>> wrapJsonWords(const std::vector<JWord>& wor
     return lines;
 }
 
+
 int main(int argc, char** argv)
 {
     Options opt = parseArgs(argc, argv);
+
+    ft2 = cv::freetype::createFreeType2();
+    ft2->loadFontData(opt.ttfPath, 0); // Charger la police TTF
 
     // ---------- ouverture vidéo ----------
     cv::VideoCapture cap(opt.inVideo);
@@ -338,7 +369,7 @@ int main(int argc, char** argv)
                         // wrap du texte
                         std::vector<std::string> lines;
                         for (const auto& p : splitParagraphs(seg.text)) {
-                            auto wlines = wrapText(p, maxLineWidth, opt.fontFace, opt.fontScale, opt.thickness);
+                            auto wlines = wrapText(p, maxLineWidth, opt.fontSize,  opt.thickness);
                             if (!lines.empty()) lines.emplace_back("");
                             lines.insert(lines.end(), wlines.begin(), wlines.end());
                         }
@@ -349,7 +380,8 @@ int main(int argc, char** argv)
                         int totalH=0, maxW=0, bl=0;
                         std::vector<cv::Size> sizes;
                         for (auto& L : lines) {
-                            auto sz = cv::getTextSize(L, opt.fontFace, opt.fontScale, opt.thickness, &bl);
+                            auto sz = ft2->getTextSize(L, opt.fontSize, opt.thickness, &bl);
+                            //auto sz = cv::getTextSize(L, opt.fontFace, opt.fontScale, opt.thickness, &bl);
                             sizes.push_back(sz);
                             maxW = std::max(maxW, sz.width);
                             totalH += sz.height + bl;
@@ -370,18 +402,20 @@ int main(int argc, char** argv)
 
                         int yCursor = blockY;
                         for (size_t i=0;i<lines.size();++i) {
-                            int blL=0; auto sz = cv::getTextSize(lines[i], opt.fontFace, opt.fontScale, opt.thickness, &blL);
+                            int blL=0; 
+                            auto sz = ft2->getTextSize(lines[i], opt.fontSize, opt.thickness, &blL);
+                            //auto sz = cv::getTextSize(lines[i], opt.fontFace, opt.fontScale, opt.thickness, &blL);
                             int x = opt.center ? (width - sz.width)/2 : blockX;
                             int y = yCursor + sz.height + blL;
                             if (opt.outline)
-                                cv::putText(frame, lines[i], {x,y}, opt.fontFace, opt.fontScale, opt.outlineColor,
-                                            std::max(opt.outlineThickness, opt.thickness+1), cv::LINE_AA);
-                            cv::putText(frame, lines[i], {x,y}, opt.fontFace, opt.fontScale, opt.color, opt.thickness, cv::LINE_AA);
+                                   drawText(frame, lines[i], {x,y}, opt.fontSize, opt.outlineColor,
+                                            std::max(opt.outlineThickness, opt.thickness+1));
+                            drawText(frame, lines[i], {x,y},  opt.fontSize, opt.color, opt.thickness);
                             yCursor += sz.height + blL + opt.lineGap;
                         }
                     } else {
                         // wrap par tokens
-                        auto linesIdx = wrapJsonWords(seg.words, maxLineWidth, opt.fontFace, opt.fontScale, opt.thickness);
+                        auto linesIdx = wrapJsonWords(seg.words, maxLineWidth, opt.fontSize, opt.thickness);
 
                         // Largeurs réelles (au temps t) + hauteurs par ligne
                         std::vector<int> lineW_real(linesIdx.size(), 0);
@@ -392,13 +426,20 @@ int main(int argc, char** argv)
                             for (int wi : linesIdx[li]) {
                                 bool activeWord = opt.karaoke && (t_s >= seg.words[wi].start && t_s <= seg.words[wi].end);
                                 double sc = activeWord ? opt.hlScale : opt.fontScale;
+                                int fsz = activeWord ? opt.hlFontSize : opt.fontSize;
                                 int bl=0;
-                                auto sz = cv::getTextSize(seg.words[wi].token, opt.fontFace, sc, opt.thickness, &bl);
+                                auto sz = ft2->getTextSize(seg.words[wi].token, fsz, opt.thickness, &bl);
+                                //auto sz = cv::getTextSize(seg.words[wi].token, opt.fontFace, sc, opt.thickness, &bl);
                                 wsum += sz.width;
                                 maxH = std::max(maxH, sz.height);
                                 maxBase = std::max(maxBase, bl);
                             }
-                            if (maxH==0) { int bl=0; auto sz = cv::getTextSize(" ", opt.fontFace, opt.fontScale, opt.thickness, &bl); maxH=sz.height; maxBase=bl; }
+                            if (maxH==0) {
+                                 int bl=0;
+                                 auto sz = ft2->getTextSize(" ", opt.fontSize, opt.thickness, &bl);
+                                 //auto sz = cv::getTextSize(" ", opt.fontFace, opt.fontScale, opt.thickness, &bl);
+                                 //  maxH=sz.height; maxBase=bl; 
+                                }
                             lineW_real[li] = wsum;
                             lineH[li] = maxH;
                             lineBase[li] = maxBase;
@@ -433,18 +474,24 @@ int main(int argc, char** argv)
                                 const std::string& tok = seg.words[wi].token;
                                 bool activeWord = opt.karaoke && (t_s >= seg.words[wi].start && t_s <= seg.words[wi].end);
 
-                                double sc  = activeWord ? opt.hlScale     : opt.fontScale;
+                                double sc  = activeWord ? opt.hlFontSize  : opt.fontSize;
                                 int thick  = activeWord ? opt.hlThickness : opt.thickness;
-                                cv::Scalar col = activeWord ? opt.hlColor  : opt.color;
+                                cv::Scalar col = activeWord ? opt.hlColor : opt.color;
 
                                 int bl=0;
-                                auto sz = cv::getTextSize(tok, opt.fontFace, sc, opt.thickness, &bl); // largeur réelle
+                                auto sz = ft2->getTextSize(tok, sc, opt.thickness, &bl); // largeur réelle
+
+                                
+                                if ( activeWord && opt.hlBoxDraw ) {
+                                    cv::Rect rect(xCur+5, yBase-sz.height+4, sz.width, sz.height+2);
+                                    cv::rectangle(frame, rect,  cv::Scalar(0,0,0), cv::FILLED, cv::LINE_AA);
+                                }
 
                                 if (opt.outline) {
-                                    cv::putText(frame, tok, {xCur, yBase}, opt.fontFace, sc, opt.outlineColor,
-                                                std::max(opt.outlineThickness, thick+1), cv::LINE_AA);
+                                    drawText(frame, tok, {xCur, yBase}, sc, opt.outlineColor,
+                                                std::max(opt.outlineThickness, thick+3));
                                 }
-                                cv::putText(frame, tok, {xCur, yBase}, opt.fontFace, sc, col, thick, cv::LINE_AA);
+                                drawText(frame, tok, {xCur, yBase},  sc, col, thick);
 
                                 xCur += sz.width;
                             }
@@ -469,7 +516,7 @@ int main(int argc, char** argv)
 
                     std::vector<std::string> lines;
                     for (const auto& p : splitParagraphs(raw)) {
-                        auto wlines = wrapText(p, maxLineWidth, opt.fontFace, opt.fontScale, opt.thickness);
+                        auto wlines = wrapText(p, maxLineWidth, opt.fontSize, opt.thickness);
                         if (!lines.empty()) lines.emplace_back("");
                         lines.insert(lines.end(), wlines.begin(), wlines.end());
                     }
@@ -479,7 +526,7 @@ int main(int argc, char** argv)
 
                     int totalH=0, maxW=0, bl=0;
                     for (auto& L : lines) {
-                        auto sz = cv::getTextSize(L, opt.fontFace, opt.fontScale, opt.thickness, &bl);
+                        auto sz = ft2->getTextSize(L, opt.fontSize, opt.thickness, &bl);
                         maxW = std::max(maxW, sz.width);
                         totalH += sz.height + bl;
                     }
@@ -499,13 +546,14 @@ int main(int argc, char** argv)
 
                     int yCursor = blockY;
                     for (size_t i=0;i<lines.size();++i) {
-                        int blL=0; auto sz = cv::getTextSize(lines[i], opt.fontFace, opt.fontScale, opt.thickness, &blL);
+                        int blL=0; auto sz = ft2->getTextSize(lines[i], opt.fontSize, opt.thickness, &blL);
                         int x = opt.center ? (width - sz.width)/2 : blockX;
                         int y = yCursor + sz.height + blL;
-                        if (opt.outline)
-                            cv::putText(frame, lines[i], {x,y}, opt.fontFace, opt.fontScale, opt.outlineColor,
-                                        std::max(opt.outlineThickness, opt.thickness+1), cv::LINE_AA);
-                        cv::putText(frame, lines[i], {x,y}, opt.fontFace, opt.fontScale, opt.color, opt.thickness, cv::LINE_AA);
+                        if (opt.outline) {
+                            drawText(frame, lines[i], {x,y},  opt.fontSize, opt.outlineColor,
+                                        std::max(opt.outlineThickness, opt.thickness+3)); // if opt.thickness == -1 ( filled ) the 3-1 =+2 
+                            }
+                        drawText(frame, lines[i], {x,y}, opt.fontSize, opt.color, opt.thickness);
                         yCursor += sz.height + blL + opt.lineGap;
                     }
                 }
