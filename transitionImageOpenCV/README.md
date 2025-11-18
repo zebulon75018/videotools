@@ -2,6 +2,8 @@
 
 These code is from vibe coding , hum the quality is not the best , but it's works.
 
+#Watch the explanation video ! 
+
 [![Watch the video](https://img.youtube.com/vi/OhZkYNc1avE/default.jpg)](https://youtu.be/OhZkYNc1avE)
 
 
