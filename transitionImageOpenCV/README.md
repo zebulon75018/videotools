@@ -2,6 +2,9 @@
 
 These code is from vibe coding , hum the quality is not the best , but it's works.
 
+[![Watch the video](https://img.youtube.com/vi/OhZkYNc1avE/default.jpg)](https://youtu.be/OhZkYNc1avE)
+
+
 ```
 Usage: ./transition_cli <image1> <image2> <config.json> <output_video> [fps] 
  -h or --help for full help 
