@@ -4,6 +4,8 @@ Voici un README propre et complet en anglais pour ton projet :
 
 # 🎬 Video Segment Colorizer (Gradio + AI Background Removal)
 
+![](https://github.com/zebulon75018/videotools/blob/main/GRADIOWITHOUtBG/gradio.png?raw=true)
+
 A Python application built with Gradio that allows you to:
 
 * Upload a video
