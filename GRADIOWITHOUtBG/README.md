@@ -13,7 +13,6 @@ A Python application built with Gradio that allows you to:
 * Automatically remove the background using AI
 * Recolor either the foreground or the background
 * Insert customizable text **between foreground and background layers**
-* Generate a processed video segment
 
 ---
 
@@ -58,20 +57,12 @@ Text is rendered **between background and foreground**, meaning:
 
   * Presets (center, top-left, etc.)
   * OR manual X/Y coordinates
-* Custom `.ttf` font support
 * Font size
 * Text color (hex, rgb, or named)
 * Opacity control
 * Outline (stroke) width + color
 
-### 🖱️ Interactive Placement (Optional)
 
-* With `gradio-image-prompter`, you can:
-
-  * Click on the preview
-  * Move a point to position the text visually
-
----
 
 ## 📦 Installation
 
@@ -88,14 +79,6 @@ venv\\Scripts\\activate   # Windows
 ```bash
 pip install gradio opencv-python pillow numpy rembg onnxruntime
 ```
-
-### (Optional) For interactive point placement:
-
-```bash
-pip install gradio-image-prompter
-```
-
----
 
 ## ▶️ Run the App
 
@@ -152,7 +135,6 @@ Then open the URL shown in your terminal (usually `http://127.0.0.1:7860`).
 
 ## 🛠️ Possible Improvements
 
-* Audio preservation in output video
 * GPU acceleration
 * Better tracking (reuse mask across frames)
 * Real drag & drop text layer (via custom JS canvas)
@@ -168,7 +150,7 @@ This project is for experimentation and prototyping purposes.
 
 ## 🙌 Credits
 
-* Background removal powered by `rembg`
+* Background removal powered by `withoutbg`
 * UI built with Gradio
 * Video processing via OpenCV
 
