@@ -26,8 +26,7 @@ A Python application built with Gradio that allows you to:
 
 ### 🧠 AI Background Removal
 
-* Uses `rembg` (U²-Net / ISNet models)
-* No dependency on `huggingface_hub` or `withoutbg`
+* Uses `withoutbg`
 * Fully local processing
 
 ### 🎨 Selective Colorization
