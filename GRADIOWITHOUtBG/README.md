@@ -170,9 +170,4 @@ This project is for experimentation and prototyping purposes.
 * UI built with Gradio
 * Video processing via OpenCV
 
----
 
-Si tu veux, je peux aussi te faire :
-
-* une version README avec screenshots / GIF
-* ou une version orientée GitHub (badges, sections plus clean, etc.)
